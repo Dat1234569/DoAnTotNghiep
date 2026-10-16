@@ -1,0 +1,56 @@
+{% extends "app/base.html" %}
+{% block title %}Tổng quan — Phòng khám An Tâm{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1 class="title">Tổng quan hoạt động</h1>
+    <div class="subtitle">Tình hình phòng khám hôm nay</div>
+  </div>
+</div>
+
+<div class="stat-row">
+  <div class="stat-card"><div class="value">{{ today_appts }}</div><div class="label">Lịch khám hôm nay</div></div>
+  <div class="stat-card accent"><div class="value">{{ pending_appts }}</div><div class="label">Chờ xác nhận</div></div>
+  <div class="stat-card"><div class="value">{{ total_patients }}</div><div class="label">Tổng số bệnh nhân</div></div>
+  <div class="stat-card"><div class="value">{{ total_doctors }}</div><div class="label">Bác sĩ đang hoạt động</div></div>
+  <div class="stat-card accent"><div class="value">{{ revenue_month }} đ</div><div class="label">Doanh thu tháng này</div></div>
+  <div class="stat-card"><div class="value">{{ chatbot_bookings }}</div><div class="label">Lịch đặt qua Chatbot AI</div></div>
+</div>
+
+<div class="panel">
+  <div class="panel-header"><h2>Lịch khám sắp tới</h2></div>
+  <table>
+    <thead><tr><th>Bệnh nhân</th><th>Ngày</th><th>Giờ</th><th>Bác sĩ</th><th>Khoa</th><th>Trạng thái</th></tr></thead>
+    <tbody>
+      {% for a in upcoming %}
+      <tr>
+        <td>{{ a.patient.full_name }}</td>
+        <td>{{ a.appt_date|date:"d/m/Y" }}</td>
+        <td>{{ a.appt_time|time:"H:i" }}</td>
+        <td>{{ a.doctor.full_name|default:"Chưa phân công" }}</td>
+        <td>{{ a.department.name|default:"-" }}</td>
+        <td><span class="badge {% if a.status == 'Chờ xác nhận' %}pending{% elif a.status == 'Đã xác nhận' %}confirmed{% elif a.status == 'Hoàn thành' %}done{% else %}cancelled{% endif %}">{{ a.status }}</span></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="empty-state">Chưa có lịch khám nào sắp tới.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <div class="panel-header"><h2>Lịch khám theo khoa</h2></div>
+  {% for row in by_specialty %}
+  <div style="margin-bottom:12px;">
+    <div class="flex-between" style="margin-bottom:5px;">
+      <span style="font-size:13.5px;">{{ row.department__name|default:"Chưa phân công" }}</span>
+      <span class="muted" style="font-size:13px;">{{ row.c }} lượt</span>
+    </div>
+    <div style="background:var(--primary-soft); border-radius:6px; height:8px;">
+      {% widthratio row.c by_specialty.0.c 100 as width_percent %}
+      <div style="background:var(--primary); width:{{ width_percent }}%; height:8px; border-radius:6px;"></div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

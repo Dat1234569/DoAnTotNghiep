@@ -1,0 +1,35 @@
+{% extends "app/base.html" %}
+{% block title %}Đăng ký — Phòng khám TMH An Tâm Đà Nẵng{% endblock %}
+{% block full_content %}
+<div class="auth-shell">
+  <div class="auth-card" style="width:480px;">
+    <div class="auth-brand">
+      <div class="name">Phòng khám TMH An Tâm Đà Nẵng</div>
+      <div class="sub">Đăng ký tài khoản bệnh nhân</div>
+    </div>
+    <h2>Tạo tài khoản mới</h2>
+    <div class="lead">Dùng để trò chuyện với trợ lý AI và đặt lịch khám</div>
+
+    {% if form.errors %}
+      <div class="auth-error">Vui lòng kiểm tra lại thông tin đã nhập.</div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-field" style="grid-column: span 2;"><label>Họ và tên *</label>{{ form.full_name }}</div>
+        <div class="form-field"><label>Tên đăng nhập *</label>{{ form.username }}</div>
+        <div class="form-field"><label>Mật khẩu * (≥ 6 ký tự)</label>{{ form.password }}</div>
+        <div class="form-field"><label>Số điện thoại</label>{{ form.phone }}</div>
+        <div class="form-field"><label>Ngày sinh</label>{{ form.dob }}</div>
+        <div class="form-field"><label>Giới tính</label>{{ form.gender }}</div>
+        <div class="form-field"><label>Email</label>{{ form.email }}</div>
+        <div class="form-field" style="grid-column: span 2;"><label>Địa chỉ</label>{{ form.address }}</div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top:10px;">Đăng ký</button>
+    </form>
+
+    <div class="auth-switch">Đã có tài khoản? <a href="{% url 'login' %}">Đăng nhập</a></div>
+  </div>
+</div>
+{% endblock %}

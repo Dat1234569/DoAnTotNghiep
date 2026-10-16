@@ -1,0 +1,101 @@
+{% extends "app/base.html" %}
+{% block title %}Bác sĩ — Phòng khám An Tâm{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div><h1 class="title">Bác sĩ</h1><div class="subtitle">Danh sách bác sĩ và khoa khám phụ trách</div></div>
+  {% if current_role == 'admin' %}
+  <button class="btn btn-primary" onclick="openModal('addDoctorModal')">+ Thêm bác sĩ</button>
+  {% endif %}
+</div>
+
+<div class="stat-row">
+  {% for d in doctors %}
+  <div class="stat-card" style="border-left:3px solid {{ d.avatar_color }};">
+    <div style="font-size:16px; font-weight:700;">{{ d.full_name }}</div>
+    <div class="label" style="margin-top:2px;">{{ d.department.name|default:"Chưa phân khoa" }}</div>
+    <div class="muted" style="font-size:13px; margin-top:12px; line-height:1.7;">
+      📞 {{ d.phone|default:"-" }}<br/>✉️ {{ d.email|default:"-" }}<br/>
+      🗓 {{ d.work_days|default:"-" }} · {{ d.work_hours|default:"-" }}
+    </div>
+    {% if current_role == 'admin' %}
+    <div class="gap-8" style="margin-top:14px;">
+      <button class="btn btn-outline btn-sm" onclick="openEditDoctor({{ d.id }}, '{{ d.full_name|escapejs }}', {{ d.department_id|default:"null" }}, '{{ d.phone|escapejs }}', '{{ d.email|escapejs }}', '{{ d.work_days|escapejs }}', '{{ d.work_hours|escapejs }}')">Sửa</button>
+      <a class="btn btn-danger btn-sm" href="{% url 'doctor_delete' d.id %}" onclick="return confirm('Xóa bác sĩ này?')">Xóa</a>
+    </div>
+    {% endif %}
+  </div>
+  {% empty %}
+  <div class="empty-state">Chưa có bác sĩ nào.</div>
+  {% endfor %}
+</div>
+
+{% if current_role == 'admin' %}
+<div class="modal-overlay" id="addDoctorModal" style="display:none;">
+  <div class="modal">
+    <h3>Thêm bác sĩ</h3>
+    <form method="post" action="{% url 'doctor_create' %}">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-field" style="grid-column:span 2;"><label>Họ và tên *</label>{{ form.full_name }}</div>
+        <div class="form-field" style="grid-column:span 2;"><label>Khoa khám *</label>{{ form.department }}</div>
+        <div class="form-field"><label>Số điện thoại</label>{{ form.phone }}</div>
+        <div class="form-field"><label>Email</label>{{ form.email }}</div>
+        <div class="form-field"><label>Ngày làm việc</label>{{ form.work_days }}</div>
+        <div class="form-field"><label>Giờ làm việc</label>{{ form.work_hours }}</div>
+      </div>
+      <div class="panel-header" style="margin:14px 0 8px;"><h2 style="font-size:14px;">Tài khoản đăng nhập cho bác sĩ</h2></div>
+      <div class="form-grid">
+        <div class="form-field"><label>Tên đăng nhập</label>{{ form.username }}</div>
+        <div class="form-field"><label>Mật khẩu</label>{{ form.password }}</div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('addDoctorModal')">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editDoctorModal" style="display:none;">
+  <div class="modal">
+    <h3>Sửa thông tin bác sĩ</h3>
+    <form method="post" id="editDoctorForm">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-field" style="grid-column:span 2;"><label>Họ và tên *</label><input name="full_name" id="e_full_name" required /></div>
+        <div class="form-field" style="grid-column:span 2;"><label>Khoa khám *</label>
+          <select name="department" id="e_department">
+            {% for dep in departments %}<option value="{{ dep.id }}">{{ dep.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-field"><label>Số điện thoại</label><input name="phone" id="e_phone" /></div>
+        <div class="form-field"><label>Email</label><input name="email" id="e_email" /></div>
+        <div class="form-field"><label>Ngày làm việc</label><input name="work_days" id="e_work_days" /></div>
+        <div class="form-field"><label>Giờ làm việc</label><input name="work_hours" id="e_work_hours" /></div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('editDoctorModal')">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% block extra_js %}
+<script>
+function openModal(id) { document.getElementById(id).style.display = "flex"; }
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
+function openEditDoctor(id, name, deptId, phone, email, workDays, workHours) {
+  document.getElementById("e_full_name").value = name;
+  document.getElementById("e_department").value = deptId;
+  document.getElementById("e_phone").value = phone;
+  document.getElementById("e_email").value = email;
+  document.getElementById("e_work_days").value = workDays;
+  document.getElementById("e_work_hours").value = workHours;
+  document.getElementById("editDoctorForm").action = "/doctors/" + id + "/edit/";
+  openModal("editDoctorModal");
+}
+</script>
+{% endblock %}
+{% endblock %}

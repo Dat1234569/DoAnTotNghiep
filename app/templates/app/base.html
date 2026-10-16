@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/style.css' %}" />
+<title>{% block title %}Phòng khám TMH An Tâm Đà Nẵng{% endblock %}</title>
+</head>
+<body>
+
+{% if user.is_authenticated and current_role != 'patient' %}
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">Phòng khám TMH An Tâm Đà Nẵng</div>
+    <div class="brand-sub">Hệ thống quản lý phòng khám</div>
+    <div class="sidebar-user">
+      <div class="name">{{ user.first_name|default:user.username }}</div>
+      <span class="role-tag {{ current_role }}">
+        {% if current_role == 'admin' %}Quản trị viên
+        {% elif current_role == 'reception' %}Lễ tân
+        {% elif current_role == 'doctor' %}Bác sĩ
+        {% endif %}
+      </span>
+    </div>
+    <nav>
+      <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><span class="icon">◆</span> Tổng quan</a>
+      <a href="{% url 'appointment_list' %}" class="{% if request.resolver_match.url_name == 'appointment_list' %}active{% endif %}"><span class="icon">🗓</span> Lịch khám</a>
+      <a href="{% url 'patient_list' %}" class="{% if request.resolver_match.url_name == 'patient_list' %}active{% endif %}"><span class="icon">🧑</span> Bệnh nhân</a>
+      {% if current_role == 'admin' or current_role == 'reception' %}
+      <a href="{% url 'doctor_list' %}" class="{% if request.resolver_match.url_name == 'doctor_list' %}active{% endif %}"><span class="icon">⚕</span> Bác sĩ</a>
+      {% endif %}
+      {% if current_role == 'admin' %}
+      <a href="{% url 'department_list' %}" class="{% if request.resolver_match.url_name == 'department_list' %}active{% endif %}"><span class="icon">🏷</span> Khoa khám</a>
+      {% endif %}
+      <a href="{% url 'prescription_list' %}" class="{% if request.resolver_match.url_name == 'prescription_list' %}active{% endif %}"><span class="icon">📋</span> Đơn thuốc</a>
+      {% if current_role == 'admin' or current_role == 'doctor' %}
+      <a href="{% url 'medicine_list' %}" class="{% if request.resolver_match.url_name == 'medicine_list' %}active{% endif %}"><span class="icon">💊</span> Kho thuốc</a>
+      {% endif %}
+      {% if current_role == 'admin' or current_role == 'reception' %}
+      <a href="{% url 'service_list' %}" class="{% if request.resolver_match.url_name == 'service_list' %}active{% endif %}"><span class="icon">🏥</span> Dịch vụ & Bảng giá</a>
+      {% endif %}
+      {% if current_role == 'admin' or current_role == 'reception' %}
+      <a href="{% url 'invoice_list' %}" class="{% if request.resolver_match.url_name == 'invoice_list' %}active{% endif %}"><span class="icon">💳</span> Hóa đơn</a>
+      {% endif %}
+      {% if current_role == 'admin' %}
+      <a href="{% url 'staff_list' %}" class="{% if request.resolver_match.url_name == 'staff_list' %}active{% endif %}"><span class="icon">🔑</span> Tài khoản nhân viên</a>
+      <a href="{% url 'reports' %}" class="{% if request.resolver_match.url_name == 'reports' %}active{% endif %}"><span class="icon">📊</span> Báo cáo thống kê</a>
+      {% endif %}
+    </nav>
+    <a href="{% url 'logout' %}" class="logout-btn"><span class="icon">↩</span> Đăng xuất</a>
+    <div class="sidebar-footer">Đồ án tốt nghiệp 2026</div>
+  </aside>
+
+  <main class="main">
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% else %}
+  {% if messages %}
+  <ul class="messages" style="max-width:800px; margin:16px auto 0;">
+    {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+  {% block full_content %}{% endblock %}
+{% endif %}
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,73 @@
+{% extends "app/base.html" %}
+{% block title %}Khoa khám — Phòng khám An Tâm{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div><h1 class="title">Khoa khám</h1><div class="subtitle">Danh sách các khoa khám bệnh</div></div>
+  <button class="btn btn-primary" onclick="openModal('addDeptModal')">+ Thêm khoa</button>
+</div>
+
+<div class="panel">
+  <table>
+    <thead><tr><th>Tên khoa</th><th>Mô tả</th><th></th></tr></thead>
+    <tbody>
+      {% for d in departments %}
+      <tr>
+        <td><b>{{ d.name }}</b></td>
+        <td class="muted">{{ d.description|default:"-" }}</td>
+        <td class="text-right">
+          <div class="gap-8" style="justify-content:flex-end;">
+            <button class="btn btn-outline btn-sm" onclick="openEditDept({{ d.id }}, '{{ d.name|escapejs }}', '{{ d.description|escapejs }}')">Sửa</button>
+            <a class="btn btn-danger btn-sm" href="{% url 'department_delete' d.id %}" onclick="return confirm('Xóa khoa khám này?')">Xóa</a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3" class="empty-state">Chưa có khoa khám nào.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="modal-overlay" id="addDeptModal" style="display:none;">
+  <div class="modal">
+    <h3>Thêm khoa khám</h3>
+    <form method="post" action="{% url 'department_save' %}">
+      {% csrf_token %}
+      <div class="form-field"><label>Tên khoa *</label><input name="name" required /></div>
+      <div class="form-field"><label>Mô tả</label><textarea name="description" rows="2"></textarea></div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('addDeptModal')">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editDeptModal" style="display:none;">
+  <div class="modal">
+    <h3>Sửa khoa khám</h3>
+    <form method="post" id="editDeptForm">
+      {% csrf_token %}
+      <div class="form-field"><label>Tên khoa *</label><input name="name" id="edit_dept_name" required /></div>
+      <div class="form-field"><label>Mô tả</label><textarea name="description" id="edit_dept_desc" rows="2"></textarea></div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('editDeptModal')">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+function openModal(id) { document.getElementById(id).style.display = "flex"; }
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
+function openEditDept(id, name, description) {
+  document.getElementById("edit_dept_name").value = name;
+  document.getElementById("edit_dept_desc").value = description;
+  document.getElementById("editDeptForm").action = "/departments/" + id + "/save/";
+  openModal("editDeptModal");
+}
+</script>
+{% endblock %}
+{% endblock %}

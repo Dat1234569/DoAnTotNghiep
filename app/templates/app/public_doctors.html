@@ -1,0 +1,5 @@
+{% extends "app/public_page_base.html" %}
+{% block title %}Bác sĩ | An Tâm{% endblock %}
+{% block public_page_content %}
+<section class="inner-section"><div class="section-heading"><span>ĐỘI NGŨ CHUYÊN KHOA</span><h2>Bác sĩ tại An Tâm</h2><p>Danh sách được lấy trực tiếp từ dữ liệu bác sĩ của hệ thống.</p></div><div class="doctor-directory">{% for doc in doctors %}<article><div class="public-avatar" style="background:{{ doc.avatar_color }}">👨‍⚕️</div><div><h3>{{ doc.full_name }}</h3><span>{{ doc.department.name|default:"Chuyên khoa Tai Mũi Họng" }}</span><p>📅 {{ doc.work_days|default:"Lịch khám đang cập nhật" }}</p><p>🕐 {{ doc.work_hours|default:"Giờ khám đang cập nhật" }}</p></div><a href="{% url 'public_booking' %}" class="btn btn-primary">Đặt lịch</a></article>{% empty %}<div class="empty-state">Chưa có bác sĩ trong hệ thống.</div>{% endfor %}</div></section>
+{% endblock %}

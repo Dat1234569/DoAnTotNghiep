@@ -1,0 +1,142 @@
+{% extends "app/base.html" %}
+{% block title %}Phòng khám Tai Mũi Họng An Tâm Đà Nẵng{% endblock %}
+{% block full_content %}
+{% include "app/public_nav.html" %}
+
+<section class="home-hero">
+  <div class="hero-copy">
+    <div class="hero-kicker">PHÒNG KHÁM CHUYÊN KHOA TAI MŨI HỌNG</div>
+    <h1>Chăm sóc Tai Mũi Họng<br><span>tận tâm và chuyên nghiệp</span></h1>
+    <p>Khám, tư vấn và điều trị các bệnh lý Tai – Mũi – Họng với quy trình thuận tiện. Đặt lịch trực tuyến và nhận hỗ trợ từ trợ lý AI của An Tâm.</p>
+    <div class="hero-buttons">
+      <a href="{% url 'public_booking' %}" class="btn btn-primary btn-lg">Đặt lịch khám ngay →</a>
+      <a href="{% url 'about' %}" class="btn hero-light-btn btn-lg">Tìm hiểu về An Tâm</a>
+    </div>
+    <div class="hero-trust"><span>✓ Bác sĩ chuyên khoa</span><span>✓ Đặt lịch trực tuyến</span><span>✓ Hỗ trợ AI</span></div>
+  </div>
+  <div class="hero-visual">
+    <div class="hero-blob"></div>
+    <div class="doctor-card">
+      <div class="doctor-photo">👨‍⚕️</div>
+      <div><strong>Đội ngũ chuyên khoa</strong><small>Tai · Mũi · Họng</small></div>
+    </div>
+    <div class="hero-badge badge-top">24/7<br><small>Trợ lý AI</small></div>
+    <div class="hero-badge badge-bottom">★ 4.9/5<br><small>Khách hàng đánh giá</small></div>
+  </div>
+</section>
+
+<section class="quick-info">
+  <div><span>📞</span><strong>Hotline</strong><small>0236 3 900 900</small></div>
+  <div><span>🕐</span><strong>Giờ khám</strong><small>Thứ 2 – Thứ 7 · 08:00 – 17:00</small></div>
+  <div><span>📍</span><strong>Địa chỉ</strong><small>Đà Nẵng · Xem bản đồ</small></div>
+  <div><span>📅</span><strong>Đặt lịch</strong><small>Đặt lịch online nhanh chóng</small></div>
+</section>
+
+<!-- THANH TÌM KIẾM THÔNG MINH -->
+<section class="site-search-section" aria-labelledby="site-search-title">
+  <div class="site-search-card">
+    <div class="site-search-heading">
+      <span class="site-search-eyebrow">TÌM KIẾM NHANH</span>
+      <h2 id="site-search-title">Bạn đang tìm thông tin gì?</h2>
+      <p>Tìm bác sĩ, dịch vụ và chuyên khoa tại Phòng khám An Tâm.</p>
+    </div>
+
+    <form id="site-search-form" class="site-search-form" role="search" method="get" action="{% url 'public_search' %}">
+      <span class="site-search-icon" aria-hidden="true">⌕</span>
+      <input
+        id="site-search-input"
+        name="q"
+        type="search"
+        maxlength="120"
+        placeholder="Ví dụ: bác sĩ, khám mũi, dịch vụ tai..."
+        aria-label="Nhập từ khóa tìm kiếm"
+        autocomplete="off"
+      >
+      <button type="submit" class="site-search-button">Tìm kiếm →</button>
+    </form>
+
+    <div class="site-search-hints">
+      <span>Gợi ý:</span>
+      <button type="button" data-search-term="bác sĩ">Bác sĩ</button>
+      <button type="button" data-search-term="dịch vụ">Dịch vụ</button>
+      <button type="button" data-search-term="tai mũi họng">Tai – Mũi – Họng</button>
+    </div>
+
+    <p id="site-search-status" class="site-search-status" role="status" aria-live="polite" hidden></p>
+    <div id="site-search-results" class="site-search-results"></div>
+  </div>
+</section>
+
+<section class="public-section">
+  <div class="section-heading"><span>DỊCH VỤ</span><h2>Chăm sóc toàn diện Tai – Mũi – Họng</h2><p>Các dịch vụ nổi bật được thiết kế để bệnh nhân dễ dàng lựa chọn và đặt lịch.</p></div>
+  <div class="service-cards">
+    {% for service in services %}
+    <article class="service-card">
+      <div class="service-icon">{% if forloop.counter|divisibleby:3 %}👄{% elif forloop.counter|divisibleby:2 %}👃{% else %}👂{% endif %}</div>
+      <h3>{{ service.name }}</h3>
+      <p>{{ service.description|default:"Khám và điều trị chuyên khoa với quy trình thuận tiện."|truncatechars:105 }}</p>
+      <a href="{% url 'public_services' %}">Xem dịch vụ →</a>
+    </article>
+    {% empty %}
+    <article class="service-card"><div class="service-icon">👂</div><h3>Khám Tai</h3><p>Khám và tư vấn các bệnh lý về tai.</p><a href="{% url 'public_services' %}">Xem chi tiết →</a></article>
+    <article class="service-card"><div class="service-icon">👃</div><h3>Khám Mũi</h3><p>Khám và tư vấn các bệnh lý về mũi, xoang.</p><a href="{% url 'public_services' %}">Xem chi tiết →</a></article>
+    <article class="service-card"><div class="service-icon">👄</div><h3>Khám Họng</h3><p>Khám và tư vấn các bệnh lý vùng họng.</p><a href="{% url 'public_services' %}">Xem chi tiết →</a></article>
+    {% endfor %}
+  </div>
+  <div class="center-action"><a href="{% url 'public_services' %}" class="btn btn-outline">Xem tất cả dịch vụ</a></div>
+</section>
+
+<section class="about-home">
+  <div class="about-image"><div class="clinic-illustration"><div class="cross">+</div><div class="building">AN TÂM<small>TAI MŨI HỌNG</small></div></div></div>
+  <div class="about-copy"><span class="section-label">VỀ CHÚNG TÔI</span><h2>Phòng khám An Tâm – đồng hành cùng sức khỏe của bạn</h2><p>An Tâm hướng tới xây dựng một môi trường khám chữa bệnh thân thiện, thuận tiện và minh bạch. Website giúp bệnh nhân xem thông tin, lựa chọn dịch vụ, tìm bác sĩ và đặt lịch mà không cần gọi điện.</p><div class="about-points"><span>✓ Quy trình đặt lịch rõ ràng</span><span>✓ Hồ sơ bệnh nhân được quản lý tập trung</span><span>✓ Chatbot AI hỗ trợ tư vấn triệu chứng</span><span>✓ Kết nối bệnh nhân – bác sĩ – lễ tân</span></div><a href="{% url 'about' %}" class="text-link">Xem trang giới thiệu →</a></div>
+</section>
+
+<section class="why-section">
+  <div class="section-heading"><span>VÌ SAO CHỌN AN TÂM?</span><h2>Những điều chúng tôi tập trung mang lại</h2></div>
+  <div class="why-grid"><div><b>01</b><h3>Chuyên khoa</h3><p>Tập trung vào các bệnh lý Tai Mũi Họng và thông tin chuyên môn rõ ràng.</p></div><div><b>02</b><h3>Thuận tiện</h3><p>Đặt lịch online, theo dõi lịch khám và thông tin cá nhân trên cùng hệ thống.</p></div><div><b>03</b><h3>Công nghệ</h3><p>Tích hợp chatbot AI để hỗ trợ người dùng trước khi đến khám.</p></div><div><b>04</b><h3>Tận tâm</h3><p>Thiết kế trải nghiệm lấy bệnh nhân làm trung tâm, dễ dùng trên máy tính và điện thoại.</p></div></div>
+</section>
+
+<section class="public-section doctors-home">
+  <div class="section-heading"><span>ĐỘI NGŨ</span><h2>Bác sĩ chuyên khoa</h2><p>Thông tin bác sĩ được lấy trực tiếp từ dữ liệu của hệ thống.</p></div>
+  <div class="doctor-cards">
+    {% for doc in doctors %}
+    <article class="public-doctor-card">
+      <div class="public-avatar" style="background:{{ doc.avatar_color }}">👨‍⚕️</div>
+      <h3>{{ doc.full_name }}</h3>
+      <span>{{ doc.department.name|default:"Chuyên khoa Tai Mũi Họng" }}</span>
+      <p>{{ doc.work_days|default:"Lịch khám đang cập nhật" }}</p>
+      <a href="{% url 'public_doctors' %}">Xem hồ sơ →</a>
+    </article>
+    {% empty %}
+    <article class="public-doctor-card"><div class="public-avatar">👨‍⚕️</div><h3>Đội ngũ bác sĩ An Tâm</h3><span>Chuyên khoa Tai Mũi Họng</span><p>Thông tin đang được cập nhật.</p></article>
+    {% endfor %}
+  </div>
+  <div class="center-action"><a href="{% url 'public_doctors' %}" class="btn btn-outline">Xem tất cả bác sĩ</a></div>
+</section>
+
+<section class="reviews-section">
+  <div class="section-heading"><span>KHÁCH HÀNG NÓI GÌ?</span><h2>Đánh giá từ bệnh nhân</h2><p>Phần đánh giá được thiết kế để sau này có thể kết nối với dữ liệu thực tế.</p></div>
+  <div class="review-grid"><article><div class="stars">★★★★★</div><p>“Giao diện đặt lịch rõ ràng, thông tin bác sĩ dễ tìm và không mất nhiều thời gian.”</p><strong>Nguyễn Minh Anh</strong><small>Bệnh nhân</small></article><article><div class="stars">★★★★★</div><p>“Tôi thích phần tư vấn AI vì có thể xem hướng dẫn ban đầu trước khi đặt lịch.”</p><strong>Trần Quốc Huy</strong><small>Bệnh nhân</small></article><article><div class="stars">★★★★★</div><p>“Phòng khám có đầy đủ thông tin dịch vụ và lịch khám, rất thuận tiện.”</p><strong>Lê Thị Ngọc</strong><small>Bệnh nhân</small></article></div>
+  <div class="center-action"><a href="{% url 'reviews' %}" class="text-link">Xem thêm đánh giá →</a></div>
+</section>
+
+<section class="cta-section"><div><span>ĐẶT LỊCH KHÁM</span><h2>Bạn đang gặp vấn đề về Tai Mũi Họng?</h2><p>Đăng nhập để đặt lịch trực tuyến hoặc trò chuyện với trợ lý AI trước khi đến phòng khám.</p></div><a href="{% url 'public_booking' %}" class="btn btn-white btn-lg">Đặt lịch ngay →</a></section>
+
+<footer class="public-footer"><div><strong>An Tâm</strong><p>Phòng khám Chuyên khoa Tai Mũi Họng An Tâm Đà Nẵng</p></div><div><strong>Điều hướng</strong><a href="{% url 'about' %}">Giới thiệu</a><a href="{% url 'public_services' %}">Dịch vụ</a><a href="{% url 'public_doctors' %}">Bác sĩ</a></div><div><strong>Liên hệ</strong><p>0236 3 900 900</p><p>Đà Nẵng</p></div><div><strong>Đặt lịch</strong><a href="{% url 'public_booking' %}">Đặt lịch khám online →</a><a href="{% url 'contact' %}">Liên hệ phòng khám →</a></div></footer>
+
+<!-- Gợi ý tìm kiếm gửi truy vấn lên Django/database -->
+<script>
+(function () {
+  const input = document.getElementById("site-search-input");
+  const form = document.getElementById("site-search-form");
+  if (!input || !form) return;
+  document.querySelectorAll("[data-search-term]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      input.value = button.getAttribute("data-search-term") || "";
+      form.requestSubmit();
+    });
+  });
+})();
+</script>
+
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "app/base.html" %}
+{% block title %}Kết quả tìm kiếm — An Tâm{% endblock %}
+{% block full_content %}
+{% include "app/public_nav.html" %}
+<section class="public-section" style="max-width:1100px;margin:40px auto;padding:24px;">
+  <div class="section-heading">
+    <span>TÌM KIẾM</span><h1>Kết quả tìm kiếm</h1>
+    <p>Từ khóa: <strong>{{ query }}</strong></p>
+  </div>
+  <form method="get" action="{% url 'public_search' %}" class="site-search-form">
+    <input type="search" name="q" value="{{ query }}" placeholder="Tìm bác sĩ, dịch vụ hoặc chuyên khoa..." required>
+    <button type="submit" class="site-search-button">Tìm kiếm →</button>
+  </form>
+  {% if not has_query %}<p>Nhập từ khóa để bắt đầu tìm kiếm.</p>{% else %}
+    <h2>Bác sĩ ({{ doctors|length }})</h2>
+    <div class="service-cards">
+      {% for doctor in doctors %}
+      <article class="service-card"><h3>{{ doctor.full_name }}</h3>
+        <p>Chuyên khoa: {{ doctor.department.name|default:"Chưa cập nhật" }}</p>
+        <p>Lịch khám: {{ doctor.work_days|default:"Đang cập nhật" }} {{ doctor.work_hours }}</p>
+        <a href="{% url 'public_doctors' %}">Xem danh sách bác sĩ →</a>
+      </article>
+      {% empty %}<p>Không tìm thấy bác sĩ phù hợp.</p>{% endfor %}
+    </div>
+    <h2>Dịch vụ ({{ services|length }})</h2>
+    <div class="service-cards">
+      {% for service in services %}
+      <article class="service-card"><h3>{{ service.name }}</h3>
+        <p>{{ service.description|default:"Chưa có mô tả." }}</p>
+        <p>Chuyên khoa: {{ service.department.name|default:"Chưa phân loại" }}</p>
+        <p>Giá: {{ service.price }} đ</p>
+        <a href="{% url 'public_services' %}">Xem tất cả dịch vụ →</a>
+      </article>
+      {% empty %}<p>Không tìm thấy dịch vụ phù hợp.</p>{% endfor %}
+    </div>
+    <h2>Chuyên khoa ({{ departments|length }})</h2>
+    {% for department in departments %}
+      <article class="search-result-item"><h3>{{ department.name }}</h3><p>{{ department.description }}</p></article>
+    {% empty %}<p>Không tìm thấy chuyên khoa phù hợp.</p>{% endfor %}
+    {% if not doctors and not services and not departments %}<p>Chưa tìm thấy kết quả phù hợp với “{{ query }}”. Hãy thử từ khóa khác.</p>{% endif %}
+  {% endif %}
+</section>
+{% endblock %}

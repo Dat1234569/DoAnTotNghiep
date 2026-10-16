@@ -1,0 +1,97 @@
+{% extends "app/base.html" %}
+{% block title %}Dịch vụ & Bảng giá — Phòng khám TMH An Tâm Đà Nẵng{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div><h1 class="title">Dịch vụ & Bảng giá</h1><div class="subtitle">Danh mục dịch vụ khám và giá tương ứng</div></div>
+  {% if current_role == 'admin' %}
+  <button class="btn btn-primary" onclick="openModal('addSvcModal')">+ Thêm dịch vụ</button>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <table>
+    <thead><tr><th>Tên dịch vụ</th><th>Nhóm khám</th><th>Giá</th><th>Mô tả</th><th></th></tr></thead>
+    <tbody>
+      {% for s in services %}
+      <tr>
+        <td><b>{{ s.name }}</b></td>
+        <td>{{ s.department.name|default:"-" }}</td>
+        <td>{{ s.price }} đ</td>
+        <td class="muted">{{ s.description|default:"-" }}</td>
+        <td class="text-right">
+          {% if current_role == 'admin' %}
+          <div class="gap-8" style="justify-content:flex-end;">
+            <button class="btn btn-outline btn-sm" onclick="openEditSvc({{ s.id }}, '{{ s.name|escapejs }}', {{ s.department_id|default:"null" }}, {{ s.price }}, '{{ s.description|escapejs }}')">Sửa</button>
+            <a class="btn btn-danger btn-sm" href="{% url 'service_delete' s.id %}" onclick="return confirm('Xóa dịch vụ này?')">Xóa</a>
+          </div>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="empty-state">Chưa có dịch vụ nào.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if current_role == 'admin' %}
+<div class="modal-overlay" id="addSvcModal" style="display:none;">
+  <div class="modal">
+    <h3>Thêm dịch vụ</h3>
+    <form method="post" action="{% url 'service_create' %}">
+      {% csrf_token %}
+      <div class="form-field"><label>Tên dịch vụ *</label><input name="name" placeholder="vd: Khám Tai, Nội soi Mũi..." required /></div>
+      <div class="form-field"><label>Nhóm khám</label>
+        <select name="department">
+          <option value="">Không thuộc nhóm nào</option>
+          {% for dep in departments_all %}<option value="{{ dep.id }}">{{ dep.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-field"><label>Giá (VNĐ) *</label><input type="number" name="price" value="0" required /></div>
+      <div class="form-field"><label>Mô tả</label><textarea name="description" rows="2"></textarea></div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('addSvcModal')">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editSvcModal" style="display:none;">
+  <div class="modal">
+    <h3>Sửa dịch vụ</h3>
+    <form method="post" id="editSvcForm">
+      {% csrf_token %}
+      <div class="form-field"><label>Tên dịch vụ *</label><input name="name" id="es_name" required /></div>
+      <div class="form-field"><label>Nhóm khám</label>
+        <select name="department" id="es_department">
+          <option value="">Không thuộc nhóm nào</option>
+          {% for dep in departments_all %}<option value="{{ dep.id }}">{{ dep.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-field"><label>Giá (VNĐ) *</label><input type="number" name="price" id="es_price" required /></div>
+      <div class="form-field"><label>Mô tả</label><textarea name="description" id="es_description" rows="2"></textarea></div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('editSvcModal')">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% block extra_js %}
+<script>
+function openModal(id) { document.getElementById(id).style.display = "flex"; }
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
+function openEditSvc(id, name, deptId, price, description) {
+  document.getElementById("es_name").value = name;
+  document.getElementById("es_department").value = deptId || "";
+  document.getElementById("es_price").value = price;
+  document.getElementById("es_description").value = description;
+  document.getElementById("editSvcForm").action = "/services/" + id + "/edit/";
+  openModal("editSvcModal");
+}
+</script>
+{% endblock %}
+{% endblock %}

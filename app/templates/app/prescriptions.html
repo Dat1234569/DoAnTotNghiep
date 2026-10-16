@@ -1,0 +1,97 @@
+{% extends "app/base.html" %}
+{% block title %}Đơn thuốc — Phòng khám TMH An Tâm Đà Nẵng{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div><h1 class="title">Đơn thuốc</h1><div class="subtitle">Đơn thuốc được kê theo từng lượt khám</div></div>
+  {% if role == 'admin' or role == 'doctor' %}
+  <button class="btn btn-primary" onclick="openModal('addRxModal')">+ Tạo đơn thuốc</button>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <table>
+    <thead><tr><th>Bệnh nhân</th><th>Ngày khám</th><th>Bác sĩ</th><th>Chẩn đoán</th><th>Số loại thuốc</th><th></th></tr></thead>
+    <tbody>
+      {% for item in rx_list %}
+      <tr>
+        <td><b>{{ item.obj.appointment.patient.full_name }}</b></td>
+        <td>{{ item.obj.appointment.appt_date|date:"d/m/Y" }}</td>
+        <td>{{ item.obj.appointment.doctor.full_name|default:"-" }}</td>
+        <td>{{ item.obj.diagnosis|default:"-" }}</td>
+        <td>{{ item.med_count }}</td>
+        <td class="text-right">
+          {% if current_role == 'admin' %}
+          <a class="btn btn-danger btn-sm" href="{% url 'prescription_delete' item.obj.id %}" onclick="return confirm('Xóa đơn thuốc này?')">Xóa</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="empty-state">Chưa có đơn thuốc nào.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if role == 'admin' or role == 'doctor' %}
+<div class="modal-overlay" id="addRxModal" style="display:none;">
+  <div class="modal" style="width:560px;">
+    <h3>Tạo đơn thuốc</h3>
+    <form method="post" action="{% url 'prescription_create' %}">
+      {% csrf_token %}
+      <div class="form-field">
+        <label>Chọn lượt khám (bệnh nhân — ngày) *</label>
+        <select name="appointment" required>
+          {% for a in appointments %}<option value="{{ a.id }}">{{ a.patient.full_name }} — {{ a.appt_date|date:"d/m/Y" }} {{ a.appt_time|time:"H:i" }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-field"><label>Chẩn đoán</label><input name="diagnosis" /></div>
+      <div class="form-field">
+        <label>Danh sách thuốc (chọn từ kho)</label>
+        <div id="medRows">
+          <div class="form-grid" style="margin-bottom:6px;">
+            <select name="med_id" style="border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13.5px;">
+              <option value="">— Chọn thuốc —</option>
+              {% for m in medicines %}<option value="{{ m.id }}">{{ m.name }} (tồn: {{ m.quantity }} {{ m.unit }})</option>{% endfor %}
+            </select>
+            <input type="number" name="med_qty" placeholder="Số lượng" value="1" min="1" style="border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13.5px;" />
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="addMedRow()">+ Thêm thuốc</button>
+      </div>
+      <div class="form-field"><label>Ghi chú</label><textarea name="note" rows="2"></textarea></div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Lưu đơn thuốc</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('addRxModal')">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% block extra_js %}
+{{ medicines|json_script:"medicines-data" }}
+<script>
+function openModal(id) { document.getElementById(id).style.display = "flex"; }
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
+
+function medicineOptionsHtml() {
+  const data = JSON.parse(document.getElementById("medicines-data").textContent);
+  let html = '<option value="">— Chọn thuốc —</option>';
+  data.forEach(m => { html += `<option value="${m.pk}">${m.fields.name} (tồn: ${m.fields.quantity} ${m.fields.unit || ""})</option>`; });
+  return html;
+}
+
+function addMedRow() {
+  const wrap = document.getElementById("medRows");
+  const row = document.createElement("div");
+  row.className = "form-grid";
+  row.style.marginBottom = "6px";
+  row.innerHTML = `
+    <select name="med_id" style="border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13.5px;">${medicineOptionsHtml()}</select>
+    <input type="number" name="med_qty" placeholder="Số lượng" value="1" min="1" style="border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13.5px;" />
+  `;
+  wrap.appendChild(row);
+}
+</script>
+{% endblock %}
+{% endblock %}

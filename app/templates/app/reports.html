@@ -1,0 +1,61 @@
+{% extends "app/base.html" %}
+{% block title %}Báo cáo thống kê — Phòng khám TMH An Tâm Đà Nẵng{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div><h1 class="title">Báo cáo thống kê</h1><div class="subtitle">Tổng quan hoạt động phòng khám theo thời gian</div></div>
+</div>
+
+<div class="stat-row">
+  <div class="stat-card"><div class="value">{{ total_patients }}</div><div class="label">Tổng số bệnh nhân</div></div>
+  <div class="stat-card accent"><div class="value">{{ new_patients_this_month }}</div><div class="label">Bệnh nhân mới tháng này</div></div>
+</div>
+
+<div class="panel">
+  <div class="panel-header"><h2>Số lượt khám theo tháng</h2></div>
+  <canvas id="visitsChart" height="90"></canvas>
+</div>
+
+<div class="panel">
+  <div class="panel-header"><h2>Doanh thu theo tháng</h2></div>
+  <canvas id="revenueChart" height="90"></canvas>
+</div>
+
+<div class="panel">
+  <div class="panel-header"><h2>Tỷ lệ lượt khám theo nhóm khám</h2></div>
+  <div style="max-width:360px; margin:0 auto;">
+    <canvas id="symptomChart"></canvas>
+  </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
+<script>
+const monthLabels = {{ month_labels|safe }};
+const visitsData = {{ visits_by_month|safe }};
+const revenueData = {{ revenue_by_month|safe }};
+const symptomLabels = {{ symptom_labels|safe }};
+const symptomData = {{ symptom_data|safe }};
+
+new Chart(document.getElementById("visitsChart"), {
+  type: "bar",
+  data: { labels: monthLabels, datasets: [{ label: "Lượt khám", data: visitsData, backgroundColor: "#2451B0" }] },
+  options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+
+new Chart(document.getElementById("revenueChart"), {
+  type: "line",
+  data: { labels: monthLabels, datasets: [{ label: "Doanh thu (đ)", data: revenueData, borderColor: "#C8891A", backgroundColor: "#F7EAD1", fill: true, tension: 0.3 }] },
+  options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+
+new Chart(document.getElementById("symptomChart"), {
+  type: "doughnut",
+  data: {
+    labels: symptomLabels,
+    datasets: [{ data: symptomData, backgroundColor: ["#2451B0", "#C8891A", "#5232A8", "#1F7A4D", "#C0392B"] }]
+  },
+  options: { plugins: { legend: { position: "bottom" } } }
+});
+</script>
+{% endblock %}
+{% endblock %}

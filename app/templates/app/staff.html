@@ -1,0 +1,55 @@
+{% extends "app/base.html" %}
+{% block title %}Tài khoản nhân viên — Phòng khám TMH An Tâm Đà Nẵng{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div><h1 class="title">Tài khoản nhân viên</h1><div class="subtitle">Quản lý tài khoản Quản trị viên và Lễ tân (bác sĩ tạo ở trang Bác sĩ, admin cũng có thể tạo bằng lệnh createsuperuser)</div></div>
+  <button class="btn btn-primary" onclick="openModal('addStaffModal')">+ Thêm tài khoản</button>
+</div>
+
+<div class="panel">
+  <table>
+    <thead><tr><th>Họ tên</th><th>Tên đăng nhập</th><th>Vai trò</th><th>SĐT</th><th></th></tr></thead>
+    <tbody>
+      {% for p in staff_profiles %}
+      <tr>
+        <td><b>{{ p.user.first_name|default:p.user.username }}</b></td>
+        <td>{{ p.user.username }}</td>
+        <td><span class="badge {% if p.role == 'admin' %}chatbot{% else %}confirmed{% endif %}">{{ p.get_role_display }}</span></td>
+        <td>{{ p.phone|default:"-" }}</td>
+        <td class="text-right"><a class="btn btn-danger btn-sm" href="{% url 'staff_delete' p.id %}" onclick="return confirm('Xóa tài khoản này?')">Xóa</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="empty-state">Chưa có tài khoản nào (ngoài superuser).</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="modal-overlay" id="addStaffModal" style="display:none;">
+  <div class="modal">
+    <h3>Thêm tài khoản nhân viên</h3>
+    <form method="post" action="{% url 'staff_create' %}">
+      {% csrf_token %}
+      <div class="form-field"><label>Họ và tên *</label>{{ form.full_name }}</div>
+      <div class="form-grid">
+        <div class="form-field"><label>Tên đăng nhập *</label>{{ form.username }}</div>
+        <div class="form-field"><label>Mật khẩu *</label>{{ form.password }}</div>
+      </div>
+      <div class="form-field"><label>Vai trò *</label>{{ form.role }}</div>
+      <div class="form-field"><label>Số điện thoại</label>{{ form.phone }}</div>
+      <div class="form-field"><label>Email</label>{{ form.email }}</div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('addStaffModal')">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+function openModal(id) { document.getElementById(id).style.display = "flex"; }
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
+</script>
+{% endblock %}
+{% endblock %}

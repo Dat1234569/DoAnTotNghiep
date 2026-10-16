@@ -1,0 +1,99 @@
+{% extends "app/base.html" %}
+{% block title %}Hóa đơn — Phòng khám TMH An Tâm Đà Nẵng{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div><h1 class="title">Hóa đơn</h1><div class="subtitle">Theo dõi thanh toán của bệnh nhân</div></div>
+  <button class="btn btn-primary" onclick="openModal('addInvModal')">+ Tạo hóa đơn</button>
+</div>
+
+<div class="panel">
+  <table>
+    <thead><tr><th>Bệnh nhân</th><th>Ngày khám</th><th>Bác sĩ</th><th>Số tiền</th><th>Thanh toán</th><th>Trạng thái</th><th></th></tr></thead>
+    <tbody>
+      {% for i in invoices %}
+      <tr>
+        <td><b>{{ i.appointment.patient.full_name }}</b></td>
+        <td>{{ i.appointment.appt_date|date:"d/m/Y" }}</td>
+        <td>{{ i.appointment.doctor.full_name|default:"-" }}</td>
+        <td>{{ i.amount }} đ</td>
+        <td>{% if i.payment_method == "qr" %}Chuyển khoản QR{% else %}Tiền mặt{% endif %}</td>
+        <td><span class="badge {% if i.status == 'Đã thanh toán' %}confirmed{% else %}pending{% endif %}">{{ i.status }}</span></td>
+        <td class="text-right">
+          <div class="gap-8" style="justify-content:flex-end;">
+            {% if i.status != "Đã thanh toán" %}
+            <form method="post" action="{% url 'invoice_mark_paid' i.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button class="btn btn-outline btn-sm" type="submit">Xác nhận đã nhận tiền</button>
+            </form>
+            {% endif %}
+            {% if current_role == 'admin' %}
+            <a class="btn btn-danger btn-sm" href="{% url 'invoice_delete' i.id %}" onclick="return confirm('Xóa hóa đơn này?')">Xóa</a>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="empty-state">Chưa có hóa đơn nào.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="modal-overlay" id="addInvModal" style="display:none;">
+  <div class="modal">
+    <h3>Tạo hóa đơn</h3>
+    <form method="post" action="{% url 'invoice_create' %}">
+      {% csrf_token %}
+      <div class="form-field">
+        <label>Chọn lượt khám *</label>
+        <select name="appointment" required>
+          {% for a in appointments %}<option value="{{ a.id }}">{{ a.patient.full_name }} — {{ a.appt_date|date:"d/m/Y" }} {{ a.appt_time|time:"H:i" }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Dịch vụ (tùy chọn — tự điền giá)</label>
+        <select id="inv_service" onchange="fillPrice(this)">
+          <option value="">— Không chọn (nhập tay số tiền) —</option>
+          {% for s in services %}<option value="{{ s.id }}" data-price="{{ s.price }}">{{ s.name }} — {{ s.price }} đ</option>{% endfor %}
+        </select>
+        <input type="hidden" name="service" id="inv_service_hidden" />
+      </div>
+      <div class="form-field"><label>Số tiền (VNĐ) *</label><input type="number" name="amount" id="inv_amount" placeholder="200000" required /></div>
+      <input type="hidden" name="status" value="Chưa thanh toán">
+      <div class="form-field">
+        <label>Phương thức thanh toán *</label>
+        <select name="payment_method" id="inv_payment_method" required onchange="toggleQrInfo()">
+          <option value="cash">Tiền mặt</option>
+          <option value="qr">Chuyển khoản qua QR</option>
+        </select>
+      </div>
+      <div id="qr-payment-info" class="form-field" style="display:none;">
+        <p><strong>Thanh toán QR</strong></p>
+        <p>Hóa đơn sẽ ở trạng thái “Chưa thanh toán” cho đến khi lễ tân kiểm tra giao dịch và xác nhận đã nhận tiền.</p>
+        <p>Để hiển thị QR ngân hàng thật, cần cấu hình ngân hàng, số tài khoản và tên chủ tài khoản của phòng khám.</p>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('addInvModal')">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+function openModal(id) { document.getElementById(id).style.display = "flex"; }
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
+function fillPrice(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  document.getElementById("inv_service_hidden").value = sel.value;
+  if (sel.value) document.getElementById("inv_amount").value = opt.dataset.price;
+}
+function toggleQrInfo() {
+  const method = document.getElementById("inv_payment_method");
+  const info = document.getElementById("qr-payment-info");
+  if (method && info) info.style.display = method.value === "qr" ? "block" : "none";
+}
+</script>
+{% endblock %}
+{% endblock %}

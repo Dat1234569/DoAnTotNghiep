@@ -1,0 +1,170 @@
+{% extends "app/base.html" %}
+{% block title %}Lịch khám — Phòng khám An Tâm{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1 class="title">Lịch khám</h1>
+    <div class="subtitle">{% if role == 'doctor' %}Danh sách bệnh nhân của bạn — nhập kết quả khám bệnh tại đây{% else %}Quản lý toàn bộ lịch hẹn khám bệnh{% endif %}</div>
+  </div>
+  {% if role == 'admin' or role == 'reception' %}
+  <button class="btn btn-primary" onclick="openModal('addApptModal')">+ Đặt lịch khám</button>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <div class="panel-header">
+    <h2>Danh sách lịch khám</h2>
+    <form method="get" style="display:inline;">
+      <select name="status" onchange="this.form.submit()" style="border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:13.5px;">
+        <option value="" {% if not status %}selected{% endif %}>Tất cả       trạng thái</option>
+        <option {% if status == "Chờ xác nhận" %}selected{% endif %}>Chờ xác nhận</option>
+        <option {% if status == "Đã xác nhận" %}selected{% endif %}>Đã xác nhận</option>
+        <option {% if status == "Hoàn thành" %}selected{% endif %}>Hoàn thành</option>
+        <option {% if status == "Đã hủy" %}selected{% endif %}>Đã hủy</option>
+      </select>
+    </form>
+  </div>
+  <table>
+    <thead><tr><th>Bệnh nhân</th><th>Ngày</th><th>Giờ</th><th>Bác sĩ</th><th>Nguồn</th><th>Trạng thái</th><th></th></tr></thead>
+    <tbody>
+      {% for a in appointments %}
+      <tr>
+        <td><b>{{ a.patient.full_name }}</b><br/><span class="muted" style="font-size:12.5px;">{{ a.patient.phone }}</span></td>
+        <td>{{ a.appt_date|date:"d/m/Y" }}</td>
+        <td>{{ a.appt_time|time:"H:i" }}</td>
+        <td>{{ a.doctor.full_name|default:"Chưa phân công" }}{% if a.department %}<br/><span class="muted" style="font-size:12.5px;">{{ a.department.name }}</span>{% endif %}</td>
+        <td><span class="badge {% if a.source == 'Chatbot AI' %}chatbot{% else %}manual{% endif %}">{{ a.source }}</span></td>
+        <td><span class="badge {% if a.status == 'Chờ xác nhận' %}pending{% elif a.status == 'Đã xác nhận' %}confirmed{% elif a.status == 'Hoàn thành' %}done{% else %}cancelled{% endif %}">{{ a.status }}</span></td>
+        <td class="text-right">
+          <div class="gap-8" style="justify-content:flex-end;">
+            {% if role == 'doctor' %}
+            <button class="btn btn-outline btn-sm" onclick="openExam({{ a.id }}, '{{ a.patient.full_name|escapejs }}', '{{ a.patient.phone|escapejs }}', '{{ a.appt_date|date:"d/m/Y" }}', '{{ a.appt_time|time:"H:i" }}', '{{ a.symptom_note|escapejs }}', '{{ a.diagnosis|escapejs }}', '{{ a.treatment|escapejs }}', '{{ a.status|escapejs }}')">Khám bệnh</button>
+            {% else %}
+            <button class="btn btn-outline btn-sm" onclick="openEditAppt({{ a.id }}, {{ a.patient_id }}, {{ a.doctor_id|default:"null" }}, {{ a.department_id|default:"null" }}, '{{ a.appt_date|date:"Y-m-d" }}', '{{ a.appt_time|time:"H:i" }}', '{{ a.symptom_note|escapejs }}', '{{ a.status|escapejs }}')">Sửa</button>
+            {% endif %}
+            {% if current_role == 'admin' %}
+            <a class="btn btn-danger btn-sm" href="{% url 'appointment_delete' a.id %}" onclick="return confirm('Xóa lịch khám này?')">Xóa</a>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="empty-state">Chưa có lịch khám nào.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if role == 'admin' or role == 'reception' %}
+<div class="modal-overlay" id="addApptModal" style="display:none;">
+  <div class="modal" style="width:560px;">
+    <h3>Đặt lịch khám</h3>
+    <form method="post" action="{% url 'appointment_create' %}">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-field" style="grid-column:span 2;"><label>Bệnh nhân *</label>{{ form.patient }}</div>
+        <div class="form-field" style="grid-column:span 2;"><label>Khoa khám</label>{{ form.department }}</div>
+        <div class="form-field" style="grid-column:span 2;"><label>Bác sĩ</label>{{ form.doctor }}</div>
+        <div class="form-field"><label>Ngày khám *</label>{{ form.appt_date }}</div>
+        <div class="form-field"><label>Giờ khám *</label>{{ form.appt_time }}</div>
+        <div class="form-field" style="grid-column:span 2;"><label>Triệu chứng / Ghi chú</label>{{ form.symptom_note }}</div>
+        <div class="form-field"><label>Trạng thái</label>{{ form.status }}</div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('addApptModal')">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editApptModal" style="display:none;">
+  <div class="modal" style="width:560px;">
+    <h3>Sửa lịch khám</h3>
+    <form method="post" id="editApptForm">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-field" style="grid-column:span 2;">
+          <label>Bệnh nhân</label>
+          <input type="text" id="ea_patient_display" disabled />
+          <input type="hidden" name="patient" id="ea_patient" />
+        </div>
+        <div class="form-field" style="grid-column:span 2;"><label>Khoa khám</label>
+          <select name="department" id="ea_department">
+            <option value="">Chưa chọn</option>
+            {% for dep in all_departments %}<option value="{{ dep.id }}">{{ dep.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-field" style="grid-column:span 2;"><label>Bác sĩ</label>
+          <select name="doctor" id="ea_doctor">
+            <option value="">Chưa phân công</option>
+            {% for doc in all_doctors %}<option value="{{ doc.id }}">{{ doc.full_name }} — {{ doc.department.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-field"><label>Ngày khám *</label><input type="date" name="appt_date" id="ea_date" /></div>
+        <div class="form-field"><label>Giờ khám *</label><input type="time" name="appt_time" id="ea_time" /></div>
+        <div class="form-field" style="grid-column:span 2;"><label>Triệu chứng / Ghi chú</label><textarea name="symptom_note" id="ea_note" rows="2"></textarea></div>
+        <div class="form-field"><label>Trạng thái</label>
+          <select name="status" id="ea_status"><option>Chờ xác nhận</option><option>Đã xác nhận</option><option>Hoàn thành</option><option>Đã hủy</option></select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('editApptModal')">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% if role == 'doctor' %}
+<div class="modal-overlay" id="examModal" style="display:none;">
+  <div class="modal" style="width:560px;">
+    <h3>Khám bệnh</h3>
+    <div class="panel" style="background:var(--primary-soft); border:none; padding:14px; margin-bottom:14px;">
+      <div id="examInfo" style="font-size:13.5px; line-height:1.8;"></div>
+    </div>
+    <form method="post" id="examForm">
+      {% csrf_token %}
+      <div class="form-field"><label>Chẩn đoán</label><textarea name="diagnosis" id="ex_diagnosis" rows="2"></textarea></div>
+      <div class="form-field"><label>Hướng điều trị</label><textarea name="treatment" id="ex_treatment" rows="2"></textarea></div>
+      <div class="form-field"><label>Trạng thái</label>
+        <select name="status" id="ex_status"><option>Đã xác nhận</option><option>Hoàn thành</option><option>Đã hủy</option></select>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Lưu kết quả khám</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('examModal')">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% block extra_js %}
+<script>
+function openModal(id) { document.getElementById(id).style.display = "flex"; }
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
+
+function openEditAppt(id, patientId, doctorId, deptId, date, time, note, status) {
+  document.getElementById("ea_department").value = deptId;
+  document.getElementById("ea_doctor").value = doctorId;
+  document.getElementById("ea_date").value = date;
+  document.getElementById("ea_time").value = time;
+  document.getElementById("ea_note").value = note;
+  document.getElementById("ea_status").value = status;
+  document.getElementById("editApptForm").action = "/appointments/" + id + "/edit/";
+  openModal("editApptModal");
+}
+
+function openExam(id, name, phone, date, time, note, diagnosis, treatment, status) {
+  document.getElementById("examInfo").innerHTML =
+    "<b>" + name + "</b> — " + phone + "<br/>🗓 " + date + " lúc " + time + "<br/>Triệu chứng: " + (note || "-");
+  document.getElementById("ex_diagnosis").value = diagnosis;
+  document.getElementById("ex_treatment").value = treatment;
+  document.getElementById("ex_status").value = ["Đã xác nhận","Hoàn thành","Đã hủy"].includes(status) ? status : "Đã xác nhận";
+  document.getElementById("examForm").action = "/appointments/" + id + "/exam/";
+  openModal("examModal");
+}
+</script>
+{% endblock %}
+{% endblock %}

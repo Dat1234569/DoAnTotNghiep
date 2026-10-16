@@ -1,0 +1,23 @@
+{% extends "app/base.html" %}
+{% block title %}Đăng nhập — Phòng khám TMH An Tâm Đà Nẵng{% endblock %}
+{% block full_content %}
+<div class="auth-shell">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="name">Phòng khám TMH An Tâm Đà Nẵng</div>
+      <div class="sub">Hệ thống quản lý & tư vấn sức khỏe</div>
+    </div>
+    <h2>Đăng nhập</h2>
+    <div class="lead">Nhập tài khoản để tiếp tục</div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-field"><label>Tên đăng nhập</label><input name="username" autofocus /></div>
+      <div class="form-field"><label>Mật khẩu</label><input type="password" name="password" /></div>
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;">Đăng nhập</button>
+    </form>
+
+    <div class="auth-switch">Chưa có tài khoản bệnh nhân? <a href="{% url 'register' %}">Đăng ký ngay</a></div>
+  </div>
+</div>
+{% endblock %}

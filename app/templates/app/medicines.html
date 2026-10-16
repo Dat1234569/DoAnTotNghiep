@@ -1,0 +1,105 @@
+{% extends "app/base.html" %}
+{% block title %}Kho thuốc — Phòng khám TMH An Tâm Đà Nẵng{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div><h1 class="title">Kho thuốc</h1><div class="subtitle">Quản lý danh mục thuốc và tồn kho</div></div>
+  {% if current_role == 'admin' %}
+  <button class="btn btn-primary" onclick="openModal('addMedModal')">+ Thêm thuốc</button>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <table>
+    <thead><tr><th>Tên thuốc</th><th>Loại</th><th>Tồn kho</th><th>Đơn vị</th><th>Giá</th><th>Nhà sản xuất</th><th>Hạn dùng</th><th></th></tr></thead>
+    <tbody>
+      {% for m in medicines %}
+      <tr>
+        <td><b>{{ m.name }}</b></td>
+        <td class="muted">{{ m.category|default:"-" }}</td>
+        <td>
+          <span class="badge {% if m.quantity <= 10 %}cancelled{% elif m.quantity <= 50 %}pending{% else %}confirmed{% endif %}">{{ m.quantity }}</span>
+        </td>
+        <td>{{ m.unit|default:"-" }}</td>
+        <td>{{ m.price }} đ</td>
+        <td class="muted">{{ m.manufacturer|default:"-" }}</td>
+        <td>{{ m.expiry_date|date:"d/m/Y"|default:"-" }}</td>
+        <td class="text-right">
+          {% if current_role == 'admin' %}
+          <div class="gap-8" style="justify-content:flex-end;">
+            <button class="btn btn-outline btn-sm" onclick="openEditMed({{ m.id }}, '{{ m.name|escapejs }}', '{{ m.category|escapejs }}', {{ m.quantity }}, '{{ m.unit|escapejs }}', {{ m.price }}, '{{ m.manufacturer|escapejs }}', '{{ m.expiry_date|date:'Y-m-d' }}')">Sửa</button>
+            <a class="btn btn-danger btn-sm" href="{% url 'medicine_delete' m.id %}" onclick="return confirm('Xóa thuốc này khỏi kho?')">Xóa</a>
+          </div>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" class="empty-state">Kho thuốc trống.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if current_role == 'admin' %}
+<div class="modal-overlay" id="addMedModal" style="display:none;">
+  <div class="modal">
+    <h3>Thêm thuốc</h3>
+    <form method="post" action="{% url 'medicine_create' %}">
+      {% csrf_token %}
+      <div class="form-field"><label>Tên thuốc *</label><input name="name" required /></div>
+      <div class="form-grid">
+        <div class="form-field"><label>Loại thuốc</label><input name="category" placeholder="vd: Kháng sinh" /></div>
+        <div class="form-field"><label>Đơn vị</label><input name="unit" placeholder="vd: viên" /></div>
+        <div class="form-field"><label>Số lượng tồn kho</label><input type="number" name="quantity" value="0" /></div>
+        <div class="form-field"><label>Giá (VNĐ/đơn vị)</label><input type="number" name="price" value="0" /></div>
+        <div class="form-field"><label>Nhà sản xuất</label><input name="manufacturer" /></div>
+        <div class="form-field"><label>Hạn sử dụng</label><input type="date" name="expiry_date" /></div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('addMedModal')">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editMedModal" style="display:none;">
+  <div class="modal">
+    <h3>Sửa thông tin thuốc</h3>
+    <form method="post" id="editMedForm">
+      {% csrf_token %}
+      <div class="form-field"><label>Tên thuốc *</label><input name="name" id="em_name" required /></div>
+      <div class="form-grid">
+        <div class="form-field"><label>Loại thuốc</label><input name="category" id="em_category" /></div>
+        <div class="form-field"><label>Đơn vị</label><input name="unit" id="em_unit" /></div>
+        <div class="form-field"><label>Số lượng tồn kho</label><input type="number" name="quantity" id="em_quantity" /></div>
+        <div class="form-field"><label>Giá (VNĐ/đơn vị)</label><input type="number" name="price" id="em_price" /></div>
+        <div class="form-field"><label>Nhà sản xuất</label><input name="manufacturer" id="em_manufacturer" /></div>
+        <div class="form-field"><label>Hạn sử dụng</label><input type="date" name="expiry_date" id="em_expiry" /></div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('editMedModal')">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% block extra_js %}
+<script>
+function openModal(id) { document.getElementById(id).style.display = "flex"; }
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
+function openEditMed(id, name, category, qty, unit, price, manufacturer, expiry) {
+  document.getElementById("em_name").value = name;
+  document.getElementById("em_category").value = category;
+  document.getElementById("em_unit").value = unit;
+  document.getElementById("em_quantity").value = qty;
+  document.getElementById("em_price").value = price;
+  document.getElementById("em_manufacturer").value = manufacturer;
+  document.getElementById("em_expiry").value = expiry;
+  document.getElementById("editMedForm").action = "/medicines/" + id + "/edit/";
+  openModal("editMedModal");
+}
+</script>
+{% endblock %}
+{% endblock %}

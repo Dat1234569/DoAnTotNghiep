@@ -1,0 +1,23 @@
+<nav class="public-nav">
+  <a href="{% url 'home' %}" class="public-brand">
+    <span class="brand-mark">AT</span>
+    <span><strong>An Tâm</strong><small>PHÒNG KHÁM TAI MŨI HỌNG</small></span>
+  </a>
+  <div class="public-links">
+    <a href="{% url 'home' %}">Trang chủ</a>
+    <a href="{% url 'about' %}">Giới thiệu</a>
+    <a href="{% url 'public_services' %}">Dịch vụ</a>
+    <a href="{% url 'public_doctors' %}">Bác sĩ</a>
+    <a href="{% url 'reviews' %}">Đánh giá</a>
+    <a href="{% url 'news' %}">Tin tức</a>
+    <a href="{% url 'contact' %}">Liên hệ</a>
+  </div>
+  <div class="public-actions">
+    <a href="{% url 'public_booking' %}" class="btn btn-primary">Đặt lịch khám</a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'logout' %}" class="btn btn-outline">Đăng xuất</a>
+    {% else %}
+      <a href="{% url 'login' %}" class="btn btn-outline">Đăng nhập</a>
+    {% endif %}
+  </div>
+</nav>

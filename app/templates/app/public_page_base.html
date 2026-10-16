@@ -1,0 +1,7 @@
+{% extends "app/base.html" %}
+{% block full_content %}
+{% include "app/public_nav.html" %}
+<div class="inner-hero"><div><span>{{ kicker|default:"AN TÂM · TAI MŨI HỌNG" }}</span><h1>{{ heading }}</h1><p>{{ intro }}</p></div></div>
+{% block public_page_content %}{% endblock %}
+<footer class="public-footer"><div><strong>An Tâm</strong><p>Phòng khám Chuyên khoa Tai Mũi Họng An Tâm Đà Nẵng</p></div><div><strong>Điều hướng</strong><a href="{% url 'home' %}">Trang chủ</a><a href="{% url 'about' %}">Giới thiệu</a><a href="{% url 'public_services' %}">Dịch vụ</a><a href="{% url 'public_doctors' %}">Bác sĩ</a></div><div><strong>Liên hệ</strong><p>0236 3 900 900</p><p>Đà Nẵng</p></div><div><strong>Đặt lịch</strong><a href="{% url 'public_booking' %}">Đặt lịch khám online →</a><a href="{% url 'contact' %}">Liên hệ →</a></div></footer>
+{% endblock %}

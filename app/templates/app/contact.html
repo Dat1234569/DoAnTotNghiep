@@ -1,0 +1,5 @@
+{% extends "app/public_page_base.html" %}
+{% block title %}Liên hệ | An Tâm{% endblock %}
+{% block public_page_content %}
+<section class="inner-section"><div class="two-col"><div><span class="section-label">LIÊN HỆ</span><h2>Chúng tôi sẵn sàng hỗ trợ</h2><div class="contact-detail"><b>📞 Hotline</b><span>0236 3 900 900</span></div><div class="contact-detail"><b>📍 Địa chỉ</b><span>Đà Nẵng</span></div><div class="contact-detail"><b>🕐 Giờ làm việc</b><span>Thứ 2 – Thứ 7 · 08:00 – 17:00</span></div><div class="contact-detail"><b>✉️ Email</b><span>lienhe@antam-tmh.vn</span></div></div><div class="contact-box"><h3>Đặt lịch trực tuyến</h3><p>Không cần gọi điện. Đăng nhập tài khoản bệnh nhân và chọn ngày, giờ khám ngay trên hệ thống.</p><a href="{% url 'public_booking' %}" class="btn btn-primary">Đặt lịch khám →</a></div></div></section>
+{% endblock %}

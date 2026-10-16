@@ -1,0 +1,6 @@
+{% extends "app/public_page_base.html" %}
+{% block title %}Dịch vụ | An Tâm{% endblock %}
+{% block public_page_content %}
+<section class="inner-section"><div class="section-heading"><span>DỊCH VỤ CHUYÊN KHOA</span><h2>Khám và điều trị Tai – Mũi – Họng</h2><p>Lựa chọn dịch vụ phù hợp rồi bấm Đặt lịch để bắt đầu quy trình.</p></div><div class="service-list-page">{% for service in services %}<article><div class="service-icon">🩺</div><div><h3>{{ service.name }}</h3><span>{{ service.department.name|default:"Chuyên khoa Tai Mũi Họng" }}</span><p>{{ service.description|default:"Thông tin dịch vụ đang được cập nhật." }}</p></div><a href="{% url 'public_booking' %}" class="btn btn-primary">Đặt lịch</a></article>{% empty %}<div class="empty-state">Chưa có dịch vụ trong hệ thống. Bạn có thể thêm dịch vụ từ khu vực quản trị.</div>{% endfor %}</div></section>
+<section class="mini-cta"><h2>Chưa biết nên chọn dịch vụ nào?</h2><p>Hãy sử dụng chatbot AI hoặc liên hệ phòng khám để được hướng dẫn.</p><a href="{% url 'public_booking' %}" class="btn btn-primary">Đặt lịch khám →</a></section>
+{% endblock %}
