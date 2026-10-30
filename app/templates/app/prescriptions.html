@@ -74,22 +74,38 @@
 function openModal(id) { document.getElementById(id).style.display = "flex"; }
 function closeModal(id) { document.getElementById(id).style.display = "none"; }
 
-function medicineOptionsHtml() {
-  const data = JSON.parse(document.getElementById("medicines-data").textContent);
-  let html = '<option value="">— Chọn thuốc —</option>';
-  data.forEach(m => { html += `<option value="${m.pk}">${m.fields.name} (tồn: ${m.fields.quantity} ${m.fields.unit || ""})</option>`; });
-  return html;
-}
-
 function addMedRow() {
   const wrap = document.getElementById("medRows");
   const row = document.createElement("div");
   row.className = "form-grid";
   row.style.marginBottom = "6px";
-  row.innerHTML = `
-    <select name="med_id" style="border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13.5px;">${medicineOptionsHtml()}</select>
-    <input type="number" name="med_qty" placeholder="Số lượng" value="1" min="1" style="border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13.5px;" />
-  `;
+
+  const medicineSelect = document.createElement("select");
+  medicineSelect.name = "med_id";
+  medicineSelect.style.cssText = "border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13.5px;";
+
+  const emptyOption = document.createElement("option");
+  emptyOption.value = "";
+  emptyOption.textContent = "— Chọn thuốc —";
+  medicineSelect.appendChild(emptyOption);
+
+  const medicines = JSON.parse(document.getElementById("medicines-data").textContent);
+  medicines.forEach(medicine => {
+    const option = document.createElement("option");
+    option.value = medicine.id;
+    option.textContent = `${medicine.name} (tồn: ${medicine.quantity} ${medicine.unit || ""})`;
+    medicineSelect.appendChild(option);
+  });
+
+  const quantityInput = document.createElement("input");
+  quantityInput.type = "number";
+  quantityInput.name = "med_qty";
+  quantityInput.placeholder = "Số lượng";
+  quantityInput.value = "1";
+  quantityInput.min = "1";
+  quantityInput.style.cssText = "border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13.5px;";
+
+  row.append(medicineSelect, quantityInput);
   wrap.appendChild(row);
 }
 </script>
