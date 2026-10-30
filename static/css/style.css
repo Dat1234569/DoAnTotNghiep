@@ -139,6 +139,8 @@ tbody tr:last-child td { border-bottom: none; }
   outline: 2px solid var(--primary); outline-offset: 1px; border-color: var(--primary);
 }
 .form-actions { display: flex; gap: 10px; margin-top: 18px; }
+.invoice-qr-code { display: block; width: min(100%, 180px); max-height: 32vh; object-fit: contain; height: auto; margin: 0 auto 10px; border: 1px solid var(--border); border-radius: 12px; }
+#addInvModal .modal { box-sizing: border-box; width: min(680px, calc(100vw - 24px)); max-height: calc(100vh - 24px); overflow-x: hidden; }
 
 /* ---------- MODAL ---------- */
 .modal-overlay { position: fixed; inset: 0; background: rgba(11,18,32,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; }
@@ -147,6 +149,12 @@ tbody tr:last-child td { border-bottom: none; }
 
 /* ---------- MISC ---------- */
 .empty-state { text-align: center; padding: 40px 20px; color: var(--ink-soft); }
+.report-chart { width: 100%; min-height: 280px; }
+.report-chart svg { display: block; width: 100%; height: 280px; overflow: visible; }
+.report-chart-doughnut svg { height: 320px; }
+.report-grid-line { stroke: #e8edf4; stroke-width: 1; }
+.report-axis-label, .report-legend-label { fill: #66758a; font: 12px Inter, sans-serif; }
+.report-chart-empty { fill: #66758a; font: 14px Inter, sans-serif; }
 .muted { color: var(--ink-soft); }
 .text-right { text-align: right; }
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
