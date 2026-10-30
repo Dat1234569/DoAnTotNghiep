@@ -3,6 +3,15 @@ from django.contrib.auth.models import User
 from .models import Department, Doctor, Patient, Appointment, Prescription, Invoice, Medicine, Service
 
 
+class VietnameseDateInput(forms.DateInput):
+    input_type = "text"
+    format = "%d/%m/%Y"
+
+    def __init__(self, attrs=None, **kwargs):
+        attrs = {**(attrs or {}), "placeholder": "dd/mm/yyyy", "inputmode": "numeric"}
+        super().__init__(attrs=attrs, **kwargs)
+
+
 class PatientRegisterForm(forms.Form):
     full_name = forms.CharField(label="Họ và tên", max_length=100)
     username = forms.CharField(label="Tên đăng nhập", max_length=150)
@@ -11,7 +20,7 @@ class PatientRegisterForm(forms.Form):
     dob = forms.DateField(
         label="Ngày sinh",
         required=False,
-        widget=forms.DateInput(attrs={"type": "date", "lang": "vi"}),
+        widget=VietnameseDateInput(),
     )
     gender = forms.ChoiceField(label="Giới tính", choices=Patient.GENDER_CHOICES, required=False)
     email = forms.EmailField(label="Email", required=False)
@@ -75,7 +84,7 @@ class PatientForm(forms.ModelForm):
         model = Patient
         fields = ["full_name", "dob", "gender", "phone", "address", "email", "allergies", "medical_history"]
         widgets = {
-            "dob": forms.DateInput(attrs={"type": "date"}),
+            "dob": VietnameseDateInput(),
             "medical_history": forms.Textarea(attrs={"rows": 3}),
         }
 
@@ -86,10 +95,17 @@ class PatientSelfForm(forms.ModelForm):
         model = Patient
         fields = ["full_name", "dob", "gender", "phone", "address", "email", "allergies", "medical_history"]
         widgets = {
-            "dob": forms.DateInput(attrs={"type": "date"}),
+            "dob": VietnameseDateInput(),
             "allergies": forms.TextInput(),
             "medical_history": forms.Textarea(attrs={"rows": 3}),
         }
+
+
+class PatientAppointmentForm(forms.Form):
+    department = forms.ModelChoiceField(label="Chuyên khoa", queryset=Department.objects.all(), required=False)
+    appt_date = forms.DateField(label="Ngày khám", widget=VietnameseDateInput())
+    appt_time = forms.TimeField(label="Giờ khám", widget=forms.TimeInput(attrs={"type": "time"}))
+    symptom_note = forms.CharField(label="Triệu chứng / Ghi chú", required=False)
 
 
 class AppointmentForm(forms.ModelForm):
@@ -97,7 +113,7 @@ class AppointmentForm(forms.ModelForm):
         model = Appointment
         fields = ["patient", "doctor", "department", "appt_date", "appt_time", "symptom_note", "status"]
         widgets = {
-            "appt_date": forms.DateInput(attrs={"type": "date"}),
+            "appt_date": VietnameseDateInput(),
             "appt_time": forms.TimeInput(attrs={"type": "time"}),
             "symptom_note": forms.Textarea(attrs={"rows": 2}),
         }
@@ -130,7 +146,7 @@ class MedicineForm(forms.ModelForm):
     class Meta:
         model = Medicine
         fields = ["name", "category", "quantity", "unit", "price", "manufacturer", "expiry_date"]
-        widgets = {"expiry_date": forms.DateInput(attrs={"type": "date"})}
+        widgets = {"expiry_date": VietnameseDateInput()}
 
 
 class ServiceForm(forms.ModelForm):

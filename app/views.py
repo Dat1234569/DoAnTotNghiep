@@ -1,6 +1,6 @@
 import json
 import unicodedata
-from datetime import date
+from datetime import date, datetime
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -8,15 +8,33 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Count, Sum, Q
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
 
 from .decorators import role_required, ROLE_HOME
 from .utils import get_role
 from .forms import (
     PatientRegisterForm, StaffAccountForm, DoctorAccountForm, DepartmentForm,
-    DoctorEditForm, PatientForm, PatientSelfForm, AppointmentForm, ExamForm,
+    DoctorEditForm, PatientForm, PatientSelfForm, PatientAppointmentForm, AppointmentForm, ExamForm,
     PrescriptionForm, InvoiceForm, MedicineForm, ServiceForm
 )
 from .models import Profile, Department, Doctor, Patient, Appointment, Prescription, Invoice, Medicine, Service
+
+
+def _monthly_paid_revenue(year, month):
+    month_start = timezone.make_aware(datetime(year, month, 1))
+    if month == 12:
+        next_month_start = timezone.make_aware(datetime(year + 1, 1, 1))
+    else:
+        next_month_start = timezone.make_aware(datetime(year, month + 1, 1))
+
+    return Invoice.objects.filter(status="Đã thanh toán").filter(
+        Q(paid_at__gte=month_start, paid_at__lt=next_month_start)
+        | Q(
+            paid_at__isnull=True,
+            created_at__gte=month_start,
+            created_at__lt=next_month_start,
+        )
+    ).aggregate(s=Sum("amount"))["s"] or 0
 
 
 # ---------------- TRANG GIỚI THIỆU (CÔNG KHAI) ----------------
@@ -248,9 +266,7 @@ def dashboard(request):
         "total_doctors": Doctor.objects.count(),
         "today_appts": appts.filter(appt_date=today).count(),
         "pending_appts": appts.filter(status="Chờ xác nhận").count(),
-        "revenue_month": Invoice.objects.filter(
-            status="Đã thanh toán", created_at__year=today.year, created_at__month=today.month
-        ).aggregate(s=Sum("amount"))["s"] or 0,
+        "revenue_month": _monthly_paid_revenue(today.year, today.month),
         "chatbot_bookings": appts.filter(source="Chatbot AI").count(),
         "upcoming": appts.filter(appt_date__gte=today).order_by("appt_date", "appt_time")[:6],
         "by_specialty": appts.values("department__name").annotate(c=Count("id")).order_by("-c"),
@@ -517,8 +533,7 @@ def reports(request):
     revenue_by_month = []
     for y, m in months:
         visits_by_month.append(Appointment.objects.filter(appt_date__year=y, appt_date__month=m).count())
-        rev = Invoice.objects.filter(status="Đã thanh toán", created_at__year=y, created_at__month=m).aggregate(s=Sum("amount"))["s"] or 0
-        revenue_by_month.append(rev)
+        revenue_by_month.append(_monthly_paid_revenue(y, m))
 
     total_patients = Patient.objects.count()
     new_patients_this_month = Patient.objects.filter(created_at__year=today.year, created_at__month=today.month).count()
@@ -730,8 +745,10 @@ def invoice_create(request):
 def invoice_mark_paid(request, pk):
     inv = get_object_or_404(Invoice, pk=pk)
     if request.method == "POST":
-        inv.status = "Đã thanh toán"
-        inv.save(update_fields=["status"])
+        if inv.status != "Đã thanh toán":
+            inv.status = "Đã thanh toán"
+            inv.paid_at = timezone.now()
+            inv.save(update_fields=["status", "paid_at"])
         messages.success(request, "Đã xác nhận hóa đơn đã thanh toán.")
     return redirect("invoice_list")
 
@@ -824,21 +841,19 @@ def patient_profile_save(request):
 def patient_book_appointment(request):
     patient = getattr(request.user, "patient_profile", None)
     if request.method == "POST" and patient:
-        department_id = request.POST.get("department")
-        appt_date = request.POST.get("appt_date")
-        appt_time = request.POST.get("appt_time")
-        symptom_note = request.POST.get("symptom_note", "")
-
-        if not appt_date or not appt_time:
-            messages.error(request, "Vui lòng chọn ngày và giờ khám.")
+        form = PatientAppointmentForm(request.POST)
+        if not form.is_valid():
+            messages.error(request, "Vui lòng kiểm tra ngày khám theo định dạng dd/mm/yyyy và chọn giờ khám.")
             return redirect("patient_home")
 
-        department = Department.objects.filter(id=department_id).first() if department_id else None
+        data = form.cleaned_data
+        department = data["department"]
         doctor = Doctor.objects.filter(department=department).order_by("?").first() if department else None
 
         Appointment.objects.create(
-            patient=patient, doctor=doctor, department=department, appt_date=appt_date, appt_time=appt_time,
-            symptom_note=symptom_note, source="Lễ tân", status="Chờ xác nhận",
+            patient=patient, doctor=doctor, department=department, appt_date=data["appt_date"],
+            appt_time=data["appt_time"], symptom_note=data["symptom_note"], source="Lễ tân",
+            status="Chờ xác nhận",
         )
         messages.success(request, "Đã đặt lịch khám thành công. Vui lòng chờ xác nhận.")
     return redirect("patient_home")
