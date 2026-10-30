@@ -1698,9 +1698,11 @@
                         <label>Ngày sinh</label>
 
                         <input
-                            type="date"
+                            type="text"
                             name="dob"
-                            value="{{ patient.dob|date:'Y-m-d' }}"
+                            value="{{ patient.dob|date:'d/m/Y' }}"
+                            placeholder="dd/mm/yyyy"
+                            inputmode="numeric"
                         >
 
                     </div>
@@ -1892,9 +1894,11 @@
                         <label>Ngày khám *</label>
 
                         <input
-                            type="date"
+                            type="text"
                             name="appt_date"
                             id="normalBookDate"
+                            placeholder="dd/mm/yyyy"
+                            inputmode="numeric"
                             required
                         >
 

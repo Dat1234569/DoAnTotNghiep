@@ -40,7 +40,7 @@
             {% if role == 'doctor' %}
             <button class="btn btn-outline btn-sm" onclick="openExam({{ a.id }}, '{{ a.patient.full_name|escapejs }}', '{{ a.patient.phone|escapejs }}', '{{ a.appt_date|date:"d/m/Y" }}', '{{ a.appt_time|time:"H:i" }}', '{{ a.symptom_note|escapejs }}', '{{ a.diagnosis|escapejs }}', '{{ a.treatment|escapejs }}', '{{ a.status|escapejs }}')">Khám bệnh</button>
             {% else %}
-            <button class="btn btn-outline btn-sm" onclick="openEditAppt({{ a.id }}, {{ a.patient_id }}, {{ a.doctor_id|default:"null" }}, {{ a.department_id|default:"null" }}, '{{ a.appt_date|date:"Y-m-d" }}', '{{ a.appt_time|time:"H:i" }}', '{{ a.symptom_note|escapejs }}', '{{ a.status|escapejs }}')">Sửa</button>
+            <button class="btn btn-outline btn-sm" onclick="openEditAppt({{ a.id }}, {{ a.patient_id }}, {{ a.doctor_id|default:"null" }}, {{ a.department_id|default:"null" }}, '{{ a.appt_date|date:"d/m/Y" }}', '{{ a.appt_time|time:"H:i" }}', '{{ a.symptom_note|escapejs }}', '{{ a.status|escapejs }}')">Sửa</button>
             {% endif %}
             {% if current_role == 'admin' %}
             <a class="btn btn-danger btn-sm" href="{% url 'appointment_delete' a.id %}" onclick="return confirm('Xóa lịch khám này?')">Xóa</a>
@@ -101,7 +101,7 @@
             {% for doc in all_doctors %}<option value="{{ doc.id }}">{{ doc.full_name }} — {{ doc.department.name }}</option>{% endfor %}
           </select>
         </div>
-        <div class="form-field"><label>Ngày khám *</label><input type="date" name="appt_date" id="ea_date" /></div>
+        <div class="form-field"><label>Ngày khám *</label><input type="text" name="appt_date" id="ea_date" placeholder="dd/mm/yyyy" inputmode="numeric" /></div>
         <div class="form-field"><label>Giờ khám *</label><input type="time" name="appt_time" id="ea_time" /></div>
         <div class="form-field" style="grid-column:span 2;"><label>Triệu chứng / Ghi chú</label><textarea name="symptom_note" id="ea_note" rows="2"></textarea></div>
         <div class="form-field"><label>Trạng thái</label>

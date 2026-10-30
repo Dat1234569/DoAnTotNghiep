@@ -26,7 +26,7 @@
         <td class="text-right">
           {% if current_role == 'admin' %}
           <div class="gap-8" style="justify-content:flex-end;">
-            <button class="btn btn-outline btn-sm" onclick="openEditMed({{ m.id }}, '{{ m.name|escapejs }}', '{{ m.category|escapejs }}', {{ m.quantity }}, '{{ m.unit|escapejs }}', {{ m.price }}, '{{ m.manufacturer|escapejs }}', '{{ m.expiry_date|date:'Y-m-d' }}')">Sửa</button>
+            <button class="btn btn-outline btn-sm" onclick="openEditMed({{ m.id }}, '{{ m.name|escapejs }}', '{{ m.category|escapejs }}', {{ m.quantity }}, '{{ m.unit|escapejs }}', {{ m.price }}, '{{ m.manufacturer|escapejs }}', '{{ m.expiry_date|date:'d/m/Y' }}')">Sửa</button>
             <a class="btn btn-danger btn-sm" href="{% url 'medicine_delete' m.id %}" onclick="return confirm('Xóa thuốc này khỏi kho?')">Xóa</a>
           </div>
           {% endif %}
@@ -52,7 +52,7 @@
         <div class="form-field"><label>Số lượng tồn kho</label><input type="number" name="quantity" value="0" /></div>
         <div class="form-field"><label>Giá (VNĐ/đơn vị)</label><input type="number" name="price" value="0" /></div>
         <div class="form-field"><label>Nhà sản xuất</label><input name="manufacturer" /></div>
-        <div class="form-field"><label>Hạn sử dụng</label><input type="date" name="expiry_date" /></div>
+        <div class="form-field"><label>Hạn sử dụng</label><input type="text" name="expiry_date" placeholder="dd/mm/yyyy" inputmode="numeric" /></div>
       </div>
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">Lưu</button>
@@ -74,7 +74,7 @@
         <div class="form-field"><label>Số lượng tồn kho</label><input type="number" name="quantity" id="em_quantity" /></div>
         <div class="form-field"><label>Giá (VNĐ/đơn vị)</label><input type="number" name="price" id="em_price" /></div>
         <div class="form-field"><label>Nhà sản xuất</label><input name="manufacturer" id="em_manufacturer" /></div>
-        <div class="form-field"><label>Hạn sử dụng</label><input type="date" name="expiry_date" id="em_expiry" /></div>
+        <div class="form-field"><label>Hạn sử dụng</label><input type="text" name="expiry_date" id="em_expiry" placeholder="dd/mm/yyyy" inputmode="numeric" /></div>
       </div>
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">Lưu</button>

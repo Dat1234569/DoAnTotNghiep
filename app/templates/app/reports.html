@@ -12,23 +12,20 @@
 
 <div class="panel">
   <div class="panel-header"><h2>Số lượt khám theo tháng</h2></div>
-  <canvas id="visitsChart" height="90"></canvas>
+  <div id="visitsChart" class="report-chart" role="img" aria-label="Biểu đồ số lượt khám theo tháng"></div>
 </div>
 
 <div class="panel">
   <div class="panel-header"><h2>Doanh thu theo tháng</h2></div>
-  <canvas id="revenueChart" height="90"></canvas>
+  <div id="revenueChart" class="report-chart" role="img" aria-label="Biểu đồ doanh thu theo tháng"></div>
 </div>
 
 <div class="panel">
   <div class="panel-header"><h2>Tỷ lệ lượt khám theo nhóm khám</h2></div>
-  <div style="max-width:360px; margin:0 auto;">
-    <canvas id="symptomChart"></canvas>
-  </div>
+  <div id="symptomChart" class="report-chart report-chart-doughnut" role="img" aria-label="Biểu đồ tỷ lệ lượt khám theo nhóm khám"></div>
 </div>
 
 {% block extra_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
 <script>
 const monthLabels = {{ month_labels|safe }};
 const visitsData = {{ visits_by_month|safe }};
@@ -36,26 +33,143 @@ const revenueData = {{ revenue_by_month|safe }};
 const symptomLabels = {{ symptom_labels|safe }};
 const symptomData = {{ symptom_data|safe }};
 
-new Chart(document.getElementById("visitsChart"), {
-  type: "bar",
-  data: { labels: monthLabels, datasets: [{ label: "Lượt khám", data: visitsData, backgroundColor: "#2451B0" }] },
-  options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-});
+const svgNs = "http://www.w3.org/2000/svg";
+const chartColors = ["#2451B0", "#C8891A", "#5232A8", "#1F7A4D", "#C0392B", "#2580BD"];
 
-new Chart(document.getElementById("revenueChart"), {
-  type: "line",
-  data: { labels: monthLabels, datasets: [{ label: "Doanh thu (đ)", data: revenueData, borderColor: "#C8891A", backgroundColor: "#F7EAD1", fill: true, tension: 0.3 }] },
-  options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-});
+function createSvg(container, width, height) {
+  const svg = document.createElementNS(svgNs, "svg");
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  svg.setAttribute("aria-hidden", "true");
+  container.replaceChildren(svg);
+  return svg;
+}
 
-new Chart(document.getElementById("symptomChart"), {
-  type: "doughnut",
-  data: {
-    labels: symptomLabels,
-    datasets: [{ data: symptomData, backgroundColor: ["#2451B0", "#C8891A", "#5232A8", "#1F7A4D", "#C0392B"] }]
-  },
-  options: { plugins: { legend: { position: "bottom" } } }
-});
+function addSvgElement(svg, name, attributes, text) {
+  const element = document.createElementNS(svgNs, name);
+  Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
+  if (text !== undefined) element.textContent = text;
+  svg.appendChild(element);
+  return element;
+}
+
+function showEmpty(svg, message, width, y = 145) {
+  addSvgElement(svg, "text", {
+    x: width / 2, y, "text-anchor": "middle", class: "report-chart-empty"
+  }, message);
+}
+
+function drawMonthlyChart(id, values, color, formatValue, type) {
+  const container = document.getElementById(id);
+  const width = 900;
+  const height = 280;
+  const svg = createSvg(container, width, height);
+  const left = 72;
+  const right = 24;
+  const top = 24;
+  const bottom = 52;
+  const plotWidth = width - left - right;
+  const plotHeight = height - top - bottom;
+  const maxValue = Math.max(...values, 0);
+
+  if (maxValue === 0) {
+    showEmpty(svg, "Chưa có dữ liệu trong 6 tháng gần đây", width);
+    return;
+  }
+
+  for (let tick = 0; tick <= 4; tick += 1) {
+    const value = maxValue * tick / 4;
+    const y = top + plotHeight * (1 - tick / 4);
+    addSvgElement(svg, "line", { x1: left, y1: y, x2: width - right, y2: y, class: "report-grid-line" });
+    addSvgElement(svg, "text", { x: left - 10, y: y + 4, "text-anchor": "end", class: "report-axis-label" }, formatValue(value));
+  }
+
+  const step = plotWidth / values.length;
+  const points = values.map((value, index) => ({
+    x: left + step * (index + 0.5),
+    y: top + plotHeight * (1 - value / maxValue),
+    value
+  }));
+
+  if (type === "bar") {
+    const barWidth = Math.min(64, step * 0.58);
+    points.forEach((point, index) => {
+      const barHeight = Math.max(0, top + plotHeight - point.y);
+      addSvgElement(svg, "rect", {
+        x: point.x - barWidth / 2, y: point.y, width: barWidth, height: barHeight,
+        rx: 5, fill: color
+      });
+      addSvgElement(svg, "text", {
+        x: point.x, y: height - 20, "text-anchor": "middle", class: "report-axis-label"
+      }, monthLabels[index]);
+    });
+  } else {
+    const linePath = points.map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`).join(" ");
+    const areaPath = `${linePath} L ${points[points.length - 1].x} ${top + plotHeight} L ${points[0].x} ${top + plotHeight} Z`;
+    addSvgElement(svg, "path", { d: areaPath, fill: color, opacity: "0.12" });
+    addSvgElement(svg, "path", { d: linePath, fill: "none", stroke: color, "stroke-width": 3, "stroke-linejoin": "round", "stroke-linecap": "round" });
+    points.forEach((point, index) => {
+      addSvgElement(svg, "circle", { cx: point.x, cy: point.y, r: 5, fill: color });
+      addSvgElement(svg, "text", {
+        x: point.x, y: height - 20, "text-anchor": "middle", class: "report-axis-label"
+      }, monthLabels[index]);
+    });
+  }
+}
+
+function drawSymptomChart() {
+  const container = document.getElementById("symptomChart");
+  const width = 760;
+  const height = 320;
+  const svg = createSvg(container, width, height);
+  const total = symptomData.reduce((sum, value) => sum + value, 0);
+  const centerX = 175;
+  const centerY = 160;
+  const radius = 96;
+  const thickness = 32;
+
+  if (total === 0) {
+    addSvgElement(svg, "circle", {
+      cx: centerX, cy: centerY, r: radius, fill: "none", stroke: "#e8edf4", "stroke-width": thickness
+    });
+    showEmpty(svg, "Chưa có dữ liệu nhóm khám", width, 295);
+    return;
+  }
+
+  let angle = -Math.PI / 2;
+  symptomData.forEach((value, index) => {
+    if (value <= 0) return;
+    const nextAngle = angle + value / total * Math.PI * 2;
+    if (value === total) {
+      addSvgElement(svg, "circle", {
+        cx: centerX, cy: centerY, r: radius, fill: "none",
+        stroke: chartColors[index % chartColors.length], "stroke-width": thickness
+      });
+    } else {
+      const startX = centerX + radius * Math.cos(angle);
+      const startY = centerY + radius * Math.sin(angle);
+      const endX = centerX + radius * Math.cos(nextAngle);
+      const endY = centerY + radius * Math.sin(nextAngle);
+      const largeArc = nextAngle - angle > Math.PI ? 1 : 0;
+      addSvgElement(svg, "path", {
+        d: `M ${startX} ${startY} A ${radius} ${radius} 0 ${largeArc} 1 ${endX} ${endY}`,
+        fill: "none", stroke: chartColors[index % chartColors.length],
+        "stroke-width": thickness
+      });
+    }
+    angle = nextAngle;
+  });
+
+  symptomLabels.forEach((label, index) => {
+    const y = 74 + index * 34;
+    addSvgElement(svg, "rect", { x: 360, y: y - 12, width: 14, height: 14, rx: 3, fill: chartColors[index % chartColors.length] });
+    addSvgElement(svg, "text", { x: 386, y, class: "report-legend-label" }, `${label}: ${symptomData[index]} lượt`);
+  });
+}
+
+drawMonthlyChart("visitsChart", visitsData, "#2451B0", value => Math.round(value).toLocaleString("vi-VN"), "bar");
+drawMonthlyChart("revenueChart", revenueData, "#C8891A", value => Math.round(value).toLocaleString("vi-VN"), "line");
+drawSymptomChart();
 </script>
 {% endblock %}
 {% endblock %}

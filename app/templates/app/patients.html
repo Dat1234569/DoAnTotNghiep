@@ -27,7 +27,7 @@
         <td>{{ p.address|default:"-" }}</td>
         <td class="text-right">
           <div class="gap-8" style="justify-content:flex-end;">
-            <button class="btn btn-outline btn-sm" data-patient-id="{{ p.id }}" data-full-name="{{ p.full_name }}" data-dob="{{ p.dob|date:'Y-m-d' }}" data-gender="{{ p.gender }}" data-phone="{{ p.phone }}" data-address="{{ p.address }}" data-email="{{ p.email }}" data-allergies="{{ p.allergies }}" data-medical-history="{{ p.medical_history }}" onclick="openEditPatient(this)">Xem/Sửa hồ sơ</button>
+            <button class="btn btn-outline btn-sm" data-patient-id="{{ p.id }}" data-full-name="{{ p.full_name }}" data-dob="{{ p.dob|date:'d/m/Y' }}" data-gender="{{ p.gender }}" data-phone="{{ p.phone }}" data-address="{{ p.address }}" data-email="{{ p.email }}" data-allergies="{{ p.allergies }}" data-medical-history="{{ p.medical_history }}" onclick="openEditPatient(this)">Xem/Sửa hồ sơ</button>
             {% if current_role == 'admin' %}
             <a class="btn btn-danger btn-sm" href="{% url 'patient_delete' p.id %}" onclick="return confirm('Xóa hồ sơ bệnh nhân này?')">Xóa</a>
             {% endif %}
@@ -48,7 +48,7 @@
       {% csrf_token %}
       <div class="form-grid">
         <div class="form-field"><label>Họ và tên *</label><input name="full_name" required /></div>
-        <div class="form-field"><label>Ngày sinh</label><input type="date" name="dob" /></div>
+        <div class="form-field"><label>Ngày sinh</label><input type="text" name="dob" placeholder="dd/mm/yyyy" inputmode="numeric" /></div>
         <div class="form-field"><label>Giới tính</label>
           <select name="gender"><option>Nam</option><option>Nữ</option><option>Khác</option></select>
         </div>
@@ -73,7 +73,7 @@
       {% csrf_token %}
       <div class="form-grid">
         <div class="form-field"><label>Họ và tên *</label><input name="full_name" id="e_full_name" required /></div>
-        <div class="form-field"><label>Ngày sinh</label><input type="date" name="dob" id="e_dob" /></div>
+        <div class="form-field"><label>Ngày sinh</label><input type="text" name="dob" id="e_dob" placeholder="dd/mm/yyyy" inputmode="numeric" /></div>
         <div class="form-field"><label>Giới tính</label>
           <select name="gender" id="e_gender"><option>Nam</option><option>Nữ</option><option>Khác</option></select>
         </div>

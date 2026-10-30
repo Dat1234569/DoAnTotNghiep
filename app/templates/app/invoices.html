@@ -1,4 +1,5 @@
 {% extends "app/base.html" %}
+{% load static %}
 {% block title %}Hóa đơn — Phòng khám TMH An Tâm Đà Nẵng{% endblock %}
 {% block content %}
 <div class="topbar">
@@ -69,8 +70,14 @@
       </div>
       <div id="qr-payment-info" class="form-field" style="display:none;">
         <p><strong>Thanh toán QR</strong></p>
+        <p>Quét mã dưới đây để chuyển khoản thanh toán:</p>
+        <img
+          class="invoice-qr-code"
+          src="{% static 'images/qr-thanh-toan.png' %}"
+          alt="Mã QR thanh toán qua TPBank"
+          loading="lazy"
+        />
         <p>Hóa đơn sẽ ở trạng thái “Chưa thanh toán” cho đến khi lễ tân kiểm tra giao dịch và xác nhận đã nhận tiền.</p>
-        <p>Để hiển thị QR ngân hàng thật, cần cấu hình ngân hàng, số tài khoản và tên chủ tài khoản của phòng khám.</p>
       </div>
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">Lưu</button>
