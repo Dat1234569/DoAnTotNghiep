@@ -128,3 +128,4 @@ class Invoice(models.Model):
     payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES, default="cash")
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="Chưa thanh toán")
     created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
