@@ -41,7 +41,7 @@
 </div>
 
 <div class="modal-overlay" id="addInvModal" style="display:none;">
-  <div class="modal">
+  <div class="modal" style="box-sizing:border-box; width:min(680px, calc(100vw - 24px)); max-width:calc(100vw - 24px); max-height:calc(100vh - 24px); overflow-x:hidden;">
     <h3>Tạo hóa đơn</h3>
     <form method="post" action="{% url 'invoice_create' %}">
       {% csrf_token %}
@@ -68,7 +68,7 @@
           <option value="qr">Chuyển khoản qua QR</option>
         </select>
       </div>
-      <div id="qr-payment-info" class="form-field" style="display:none;">
+      <div id="qr-payment-info" class="form-field" style="display:none; min-width:0; max-width:100%; overflow-wrap:anywhere;">
         <p><strong>Thanh toán QR</strong></p>
         <p>Quét mã dưới đây để chuyển khoản thanh toán:</p>
         <img
@@ -76,6 +76,8 @@
           src="{% static 'images/qr-thanh-toan.png' %}"
           alt="Mã QR thanh toán qua TPBank"
           loading="lazy"
+          width="220"
+          style="display:block; width:min(220px, 100%); max-width:100%; height:auto; max-height:32vh; object-fit:contain; box-sizing:border-box; margin:0 auto 10px;"
         />
         <p>Hóa đơn sẽ ở trạng thái “Chưa thanh toán” cho đến khi lễ tân kiểm tra giao dịch và xác nhận đã nhận tiền.</p>
       </div>
